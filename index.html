@@ -1,0 +1,1188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>For Dawnel</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<style>
+  /* AUTH / PASSWORD SCREEN */
+  #auth-screen {
+    position: fixed;
+    inset: 0;
+    background: #000;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .auth-inner {
+    width: 100%;
+    max-width: 420px;
+  }
+  .auth-card {
+    background: linear-gradient(145deg, rgba(255,255,255,0.10), rgba(255,255,255,0.02));
+    border-radius: 20px;
+    padding: 20px 18px 22px;
+    box-shadow: 0 18px 45px rgba(0,0,0,0.85);
+    border: 1px solid rgba(255,255,255,0.25);
+    text-align: center;
+  }
+  .auth-title {
+    font-size: 1.3rem;
+    margin-bottom: 10px;
+    font-weight: 600;
+  }
+  .auth-hint {
+    font-size: 0.8rem;
+    opacity: 0.85;
+    margin-bottom: 16px;
+  }
+  #passwordForm {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 6px;
+  }
+  #passwordInput {
+    padding: 10px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.35);
+    background: rgba(0,0,0,0.7);
+    color: #fff;
+    font-size: 0.9rem;
+  }
+  #passwordInput::placeholder {
+    color: rgba(255,255,255,0.5);
+  }
+  #passwordForm button {
+    padding: 10px 12px;
+    border-radius: 999px;
+    border: none;
+    background: linear-gradient(135deg, #ffd777, #ffb347);
+    color: #000;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+  }
+  #passwordForm button:hover {
+    filter: brightness(1.08);
+  }
+  #passwordError {
+    margin-top: 8px;
+    font-size: 0.8rem;
+    color: #ff9da0;
+  }
+
+  /* PRE-SHOW (Happy Birthday + confetti + countdown) */
+  #pre-show {
+    position: fixed;
+    inset: 0;
+    display: none;          /* shown after password */
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    z-index: 10;
+    text-align: center;
+    pointer-events: none;   /* timer only, no interaction */
+  }
+  #pre-content {
+    pointer-events: auto;
+  }
+  #pre-title {
+    font-size: 2.1rem;
+    color: #ffd777;
+    text-shadow: 0 0 18px rgba(0,0,0,0.8);
+    margin-bottom: 16px;
+  }
+  #pre-subtitle {
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    opacity: 0.9;
+    margin-bottom: 8px;
+  }
+  #preCountdown .timer-box {
+    background: rgba(0,0,0,0.7);
+  }
+  #confetti-container {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: -1;
+  }
+  .confetti {
+    position: absolute;
+    width: 10px;
+    height: 18px;
+    background: #ffd777;
+    opacity: 0.9;
+    border-radius: 2px;
+    animation: confettiFall 3.5s linear infinite;
+  }
+  .confetti:nth-child(3n) {
+    background: #ff5f7a;
+  }
+  .confetti:nth-child(4n) {
+    background: #6ec5ff;
+  }
+  .confetti:nth-child(5n) {
+    background: #ffffff;
+  }
+  @keyframes confettiFall {
+    0% {
+      transform: translate3d(0, -20vh, 0) rotateZ(0deg);
+    }
+    50% {
+      transform: translate3d(15px, 40vh, 0) rotateZ(120deg);
+    }
+    100% {
+      transform: translate3d(-10px, 110vh, 0) rotateZ(240deg);
+    }
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+    background: #000;
+    color: #fff;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  /* Gold gift bow in top-right corner */
+  .gift-bow {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    width: 80px;
+    height: auto;
+    z-index: 25;       /* above everything */
+    pointer-events: none;
+  }
+
+  /* Canva background image behind everything */
+  .bg-image {
+    position: fixed;
+    inset: 0;
+    background:
+      url("bg-cinematic.png") center/cover no-repeat fixed,
+      radial-gradient(circle at 20% 0%, rgba(255,215,128,0.25) 0%, rgba(0,0,0,0) 45%),
+      radial-gradient(circle at 80% 100%, rgba(255,193,102,0.20) 0%, rgba(0,0,0,0) 55%),
+      radial-gradient(circle at center, #000 0%, #000 100%);
+    z-index: -2;
+  }
+
+  /* STAR BACKGROUND (gold + white, random, crisp) */
+  .stars {
+    position: fixed;
+    inset: 0;
+    background-image:
+      /* GOLD STARS (9) */
+      radial-gradient(10px 10px at 12% 18%, #ffe9a3, transparent),
+      radial-gradient(8px 8px at 42% 9%,  #ffdd7a, transparent),
+      radial-gradient(9px 9px at 77% 24%, #ffd97b, transparent),
+      radial-gradient(6px 6px at 25% 62%, #ffe7a0, transparent),
+      radial-gradient(7px 7px at 63% 82%, #ffde85, transparent),
+      radial-gradient(5px 5px at 91% 55%, #ffeab8, transparent),
+      radial-gradient(4px 4px at 21% 47%, #f8d584, transparent),
+      radial-gradient(4px 4px at 82% 15%, #f7cf71, transparent),
+      radial-gradient(3px 3px at 53% 93%, #ffdf8f, transparent),
+      /* WHITE STARS (9) – sharp + random positions */
+      radial-gradient(4px 4px at 7% 12%,   #ffffff, transparent),
+      radial-gradient(3px 3px at 33% 28%,  #ffffff, transparent),
+      radial-gradient(4px 4px at 68% 14%,  #ffffff, transparent),
+      radial-gradient(3px 3px at 19% 73%,  #ffffff, transparent),
+      radial-gradient(4px 4px at 57% 61%,  #ffffff, transparent),
+      radial-gradient(3px 3px at 88% 70%,  #ffffff, transparent),
+      radial-gradient(3px 3px at 14% 52%,  #ffffff, transparent),
+      radial-gradient(4px 4px at 39% 88%,  #ffffff, transparent),
+      radial-gradient(3px 3px at 72% 49%,  #ffffff, transparent);
+    opacity: 1;
+    pointer-events: none;
+    z-index: 0;
+    animation: moveStars 60s linear infinite;
+  }
+  @keyframes moveStars {
+    from { transform: translate3d(0,0,0); }
+    to   { transform: translate3d(-200px,-200px,0); }
+  }
+
+  /* Realistic image petals with wobble + depth layers */
+  .petals {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+    display: none;    /* will show later */
+  }
+  /* Base petal style */
+  .petal {
+    position: absolute;
+    height: auto;
+    pointer-events: none;
+    animation-name: fallPetal;
+    animation-timing-function: ease-in-out;
+    animation-iteration-count: infinite;
+    transform-origin: 50% 10%;
+  }
+  .petal-burst {
+    animation-duration: 10s;
+  }
+  /* Depth layers */
+  .petal-near {
+    width: 110px;           /* biggest, closest */
+    opacity: 1;
+    animation-duration: 18s;
+    filter: drop-shadow(0 6px 10px rgba(0,0,0,0.55));
+  }
+  .petal-mid {
+    width: 80px;            /* default mid layer */
+    opacity: 0.9;
+    animation-duration: 14s;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.45));
+  }
+  .petal-far {
+    width: 50px;            /* small, further away */
+    opacity: 0.65;
+    animation-duration: 11s;
+    filter: drop-shadow(0 2px 5px rgba(0,0,0,0.35));
+  }
+  /* Wobbly falling animation */
+  @keyframes fallPetal {
+    0% {
+      transform: translateY(-120px) translateX(0px) rotate(-12deg) skewX(-2deg);
+    }
+    20% {
+      transform: translateY(20vh) translateX(18px) rotate(2deg) skewX(1deg);
+    }
+    40% {
+      transform: translateY(40vh) translateX(-12px) rotate(10deg) skewX(-3deg);
+    }
+    60% {
+      transform: translateY(65vh) translateX(15px) rotate(16deg) skewX(2deg);
+    }
+    80% {
+      transform: translateY(90vh) translateX(-8px) rotate(22deg) skewX(-1deg);
+    }
+    100% {
+      transform: translateY(115vh) translateX(0px) rotate(26deg) skewX(0deg);
+    }
+  }
+
+  .app-shell {
+    position: relative;
+    z-index: 3;
+    width: 100%;
+    max-width: 420px;
+    padding: 18px;
+    display: none;    /* will show later */
+  }
+
+  .card {
+    background: linear-gradient(145deg, rgba(255,255,255,0.10), rgba(255,255,255,0.02));
+    border-radius: 26px;
+    padding: 24px 18px 26px;
+    box-shadow: 0 18px 45px rgba(0,0,0,0.85);
+    backdrop-filter: blur(18px);
+    border: 1px solid rgba(255,255,255,0.18);
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(0,0,0,0.45);
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    opacity: 0.9;
+  }
+  .chip-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: #ffef9a;
+    box-shadow: 0 0 8px #ffe46a;
+  }
+
+  .tap-hint {
+    font-size: 0.8rem;
+    opacity: 0.8;
+    margin-top: 8px;
+  }
+
+  /* Subtitle handwriting animation */
+.subtitle {
+    font-size: 0.95rem;
+    margin: 10px 0 18px;
+    opacity: 0;
+    display: block;
+    max-width: 100%;
+    white-space: normal;
+    text-align: center;
+    animation: subtitleFadeIn 1.2s ease forwards;
+    animation-delay: 5s;
+  }
+  @keyframes subtitleFadeIn {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Video wrapper: initially hidden, appears 5s after main show starts */
+  .video-wrapper {
+    position: relative;
+    margin: 18px 0 6px;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 14px 28px rgba(0,0,0,0.65);
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 1.5s ease, transform 1.5s ease;
+    pointer-events: none;
+  }
+  .video-wrapper.video-visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+  .video-wrapper.fade-out {
+    opacity: 0;
+    transition: opacity 4s ease;
+  }
+
+  video {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .hint {
+    font-size: 0.8rem;
+    opacity: 0.72;
+    margin-top: 4px;
+  }
+
+  .timers {
+    margin-top: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .timer-section {
+    padding: 14px 14px 12px;
+    border-radius: 17px;
+    background: radial-gradient(circle at top left, rgba(255,201,134,0.35), rgba(120,60,0,0.9));
+    border: 1px solid rgba(255,255,255,0.12);
+    display: none;
+  }
+
+  .timer-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    opacity: 0.9;
+  }
+  .pill-label {
+    font-size: 0.7rem;
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: rgba(0,0,0,0.35);
+  }
+
+  .timer-value {
+    margin-top: 10px;
+    font-size: 1.3rem;
+    font-weight: 600;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+  }
+  .timer-box {
+    min-width: 52px;
+    padding: 6px 4px;
+    border-radius: 12px;
+    background: rgba(0,0,0,0.45);
+    box-shadow: 0 0 8px rgba(255,255,255,0.08);
+  }
+  .timer-number {
+    font-size: 1.1rem;
+    font-weight: 650;
+  }
+  .timer-label-small {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    opacity: 0.8;
+  }
+
+  .timer-note {
+    margin-top: 6px;
+    font-size: 0.8rem;
+    opacity: 0.9;
+  }
+
+  .footer-note {
+    margin-top: 20px;
+    font-size: 0.8rem;
+    opacity: 0.8;
+  }
+
+  #loading-banner {
+    margin-top: 18px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    text-align: center;
+    display: none;
+    overflow: hidden;
+    height: 1.4em;
+  }
+  #loading-text {
+    display: inline-block;
+    white-space: nowrap;
+    animation: loadingSlide 3s linear infinite;
+  }
+  @keyframes loadingSlide {
+    0%   { transform: translateX(-120%); }
+    100% { transform: translateX(120%); }
+  }
+
+  #the-end {
+    display: none;
+    margin-top: 26px;
+    text-align: center;
+  }
+  #the-end-text {
+    font-family: "Times New Roman", "Georgia", serif;
+    font-size: 2.4rem;
+    font-style: italic;
+    text-shadow: 0 0 10px rgba(0,0,0,0.8);
+  }
+  #the-end-sub {
+    margin-top: 8px;
+    font-size: 0.9rem;
+    opacity: 0.9;
+  }
+
+  /* Production tag: handwriting animation triggered after scroll */
+  .production-tag {
+    margin-top: 30px;
+    width: 100%;
+    text-align: center;
+    font-family: "Brush Script MT", "Lucida Handwriting", "Pacifico", cursive;
+    font-size: 1.4rem;
+    opacity: 0.95;
+    color: #fff2d8;
+    text-shadow: 0 0 6px rgba(0,0,0,0.45);
+    display: inline-block;
+    overflow: hidden;
+    white-space: nowrap;
+    max-width: 0;
+  }
+  .production-tag.production-animate {
+    animation: writePenpal 5s steps(28,end) forwards;
+  }
+
+
+  @keyframes writePenpal {
+    to { max-width: 100%; }
+  }
+  @media (max-width: 400px) {
+    .app-shell {
+      padding: 12px;
+    }
+    .card {
+      border-radius: 22px;
+      padding: 18px 14px 20px;
+    }
+    .gift-bow {
+      width: 64px;
+      top: 8px;
+      right: 8px;
+    }
+  }
+
+
+</style>
+</head>
+<body>
+
+<!-- PASSWORD SCREEN -->
+<div id="auth-screen">
+  <div class="auth-inner">
+    <div class="auth-card">
+      <div class="auth-title">Enter the secret phrase</div>
+      <div class="auth-hint">
+        Password hint: This message will activate when you open the Gate just say your Middle name birth year one of your favourite places and the journey will begin oh you'll need to say something about your car as well....good luck!
+      </div>
+      <form id="passwordForm">
+        <input id="passwordInput" type="password" placeholder="Enter password" autocomplete="off" />
+        <button type="submit">Begin</button>
+      </form>
+      <div id="passwordError"></div>
+    </div>
+  </div>
+</div>
+
+<!-- BACKGROUND + STARS + BOW -->
+<div class="bg-image"></div>
+<div class="stars"></div>
+<img src="giftbow.png" class="gift-bow" alt="Gift bow" />
+
+<!-- PETALS (hidden until main show) -->
+<div class="petals">
+  <!-- Near layer (big, slow, close) -->
+  <img src="petal1.png" class="petal petal-near" style="left: 10%; animation-delay: 0s;">
+  <img src="petal2.png" class="petal petal-near" style="left: 65%; animation-delay: -4s;">
+  <!-- Mid layer -->
+  <img src="petal2.png" class="petal petal-mid" style="left: 30%; animation-delay: -2s;">
+  <img src="petal3.png" class="petal petal-mid" style="left: 50%; animation-delay: -6s;">
+  <!-- Far layer -->
+  <img src="petal1.png" class="petal petal-far" style="left: 20%; animation-delay: -3s;">
+  <img src="petal3.png" class="petal petal-far" style="left: 80%; animation-delay: -5s;">
+</div>
+
+<!-- PRE-SHOW SCREEN -->
+<div id="pre-show">
+  <div id="confetti-container"></div>
+  <div id="pre-content">
+    <div id="pre-title">Happy Birthday Dawnel!!</div>
+    <div id="pre-subtitle">show begins at:</div>
+    <div id="preCountdown" class="timer-value"></div>
+  </div>
+</div>
+
+<!-- MAIN CARD (hidden until main show) -->
+<div class="app-shell">
+  <div class="card">
+
+    <!-- Pre-show music (plays only during Happy Birthday + countdown) -->
+    <audio id="preMusic" loop>
+      <source src="preshow-music.m4a" type="audio/mp4" />
+    </audio>
+
+    <!-- Main show background music (old Andrea track, used after pre-show) -->
+    <audio id="mainMusic" loop>
+      <source src="andrea-music.m4a" type="audio/mp4" />
+    </audio>
+
+    <audio id="endMusic">
+      <source src="end-music.mp3" type="audio/mp3" />
+    </audio>
+
+    <audio id="unlockSound">
+      <source src="unlock-sound.mp3" type="audio/mp3" />
+    </audio>
+
+    <div class="chip">
+      <span class="chip-dot"></span>
+      <span>For Dawnel • 2025</span>
+    </div>
+
+    <div class="tap-hint">Tap anywhere once to start the music…</div>
+
+<div class="subtitle">
+  I have a special treat for you today<br>press here to play!
+</div>
+
+    <div class="video-wrapper">
+      <video id="mainVideo" controls playsinline>
+        <source src="andrea-video.mp4" type="video/mp4" />
+        Your browser does not support the video tag.
+      </video>
+    </div>
+
+    <div class="hint">
+      When this video finishes, watch what happens next. Our moments are waiting in the countdowns below. 💛
+    </div>
+
+    <div id="loading-banner">
+      <span id="loading-text">Loading.....</span>
+    </div>
+
+    <div class="timers">
+      <div id="timer1-section" class="timer-section">
+        <div class="timer-title">
+          <span>Next surprise</span>
+          <span class="pill-label">6 December • 6:00 PM</span>
+        </div>
+        <div id="timer1" class="timer-value"></div>
+        <div class="timer-note">Today is one of these days…</div>
+      </div>
+
+      <div id="timer2-section" class="timer-section">
+        <div class="timer-title">
+          <span>Another moment</span>
+          <span class="pill-label">20 December • 6:00 PM</span>
+        </div>
+        <div id="timer2" class="timer-value"></div>
+        <div class="timer-note">Some days are meant to be unforgettable…</div>
+      </div>
+
+      <div id="timer3-section" class="timer-section">
+        <div class="timer-title">
+          <span>The final surprise</span>
+          <span class="pill-label">26 December • 6:00 PM</span>
+        </div>
+        <div id="timer3" class="timer-value"></div>
+        <div class="timer-note">Today is one of these days…</div>
+      </div>
+    </div>
+
+    <div id="the-end">
+      <div id="the-end-text">The End</div>
+      <div id="the-end-sub">…but really, it’s just the beginning for us. 🤍</div>
+    </div>
+
+    <div class="footer-note">
+      Wherever you are right now, know that I’m counting down to these moments with you. 💛
+    </div>
+
+    <div class="production-tag">A Penpal Production</div>
+
+  </div>
+</div>
+
+<!-- TEST MODE BADGE -->
+<div id="test-badge"
+     style="
+        position:fixed;
+        bottom:10px;
+        right:10px;
+        background:rgba(255,50,50,0.85);
+        padding:8px 12px;
+        border-radius:8px;
+        color:#fff;
+        font-size:0.75rem;
+        font-weight:600;
+        font-family:Arial, sans-serif;
+        box-shadow:0 0 8px rgba(255,0,0,0.5);
+        z-index:9999;
+        display:none;
+     ">
+  TEST MODE ACTIVE
+</div>
+
+<script>
+  var preMusic = document.getElementById('preMusic');   // preshow-music.m4a
+  var music    = document.getElementById('mainMusic');  // andrea-music.m4a
+  var endMusic = document.getElementById('endMusic');
+  var unlockSound = document.getElementById('unlockSound');
+  var video = document.getElementById('mainVideo');
+
+  var fadeOutInterval = null;
+  var fadeInInterval = null;
+  var endMusicStarted = false;
+  var productionTagAnimated = false;
+  var preShowInterval = null;
+  var preShowStarted = false;
+  var mainShowStarted = false;
+  var mainTapHandlerAttached = false;
+  var preFadeStarted = false;   // to avoid starting multiple fades
+
+  // ================================
+  // 🔧 TEST MODE TOGGLE
+  // ================================
+  // Set TEST_MODE = true for 15-second fast-forward mode
+  // Set TEST_MODE = false for real dates
+  var TEST_MODE = true;  // ← change to false for final live version
+
+  // ================================
+  // 📅 DATE CONTROL (TEST MODE / LIVE MODE)
+  // ================================
+  var preShowEvent, event1, event1Done, event2, event2Done, event3;
+
+  if (TEST_MODE) {
+    // --- FAST TEST MODE (Everything = 15 seconds) ---
+    let now = Date.now();
+
+    preShowEvent = now + 30000;          // Pre-show ends in 15 seconds
+    event1      = preShowEvent + 30000;  // Timer 1 ends 15s later
+    event1Done  = event1 + 30000;        // Loading 1 = 15s
+    event2      = event1Done + 30000;    // Timer 2 = 15s
+    event2Done  = event2 + 30000;        // Loading 2 = 15s
+    event3      = event2Done + 30000;    // Timer 3 = 15s until "The End"
+
+  } else {
+    // --- REAL WORLD MODE (Jamaica Time via device clock) ---
+    preShowEvent = new Date('November 24, 2025 07:00:00').getTime();
+
+    event1     = new Date('December 6, 2025 18:00:00').getTime();
+    event1Done = event1 + 6 * 60 * 60 * 1000;
+
+    event2     = new Date('December 20, 2025 18:00:00').getTime();
+    event2Done = event2 + 6 * 60 * 60 * 1000;
+
+    event3     = new Date('December 26, 2025 18:00:00').getTime();
+  }
+
+  function fadeMusic(targetVolume, step, intervalMs, which) {
+    var audio = (which === 'end') ? endMusic : music;
+    if (!audio) return;
+
+    if (which !== 'end') {
+      if (fadeOutInterval) clearInterval(fadeOutInterval);
+      if (fadeInInterval) clearInterval(fadeInInterval);
+    }
+
+    var direction = targetVolume > audio.volume ? 1 : -1;
+    var absStep = Math.abs(step);
+
+    var intervalId = setInterval(function () {
+      var next = audio.volume + direction * absStep;
+
+      if ((direction > 0 && next >= targetVolume) ||
+          (direction < 0 && next <= targetVolume)) {
+        audio.volume = targetVolume;
+        clearInterval(intervalId);
+        return;
+      }
+
+      audio.volume = next;
+    }, intervalMs);
+
+    if (which !== 'end') {
+      if (direction > 0) fadeInInterval = intervalId;
+      else fadeOutInterval = intervalId;
+    }
+  }
+
+  function startProductionTagAnimation() {
+    if (productionTagAnimated) return;
+    var tag = document.querySelector('.production-tag');
+    if (!tag) return;
+    tag.classList.add('production-animate');
+    productionTagAnimated = true;
+  }
+
+  // Burst of petals when video ends
+  function triggerPetalBurst() {
+    var container = document.querySelector('.petals');
+    if (!container) return;
+
+    for (var i = 0; i < 12; i++) {
+      var img = document.createElement('img');
+      var variant = (i % 3) + 1; // cycles 1,2,3
+      img.src = 'petal' + variant + '.png';
+      img.className = 'petal petal-near petal-burst';
+      img.style.left = Math.floor(Math.random() * 100) + '%';
+      img.style.animationDelay = (Math.random() * -1) + 's';
+      container.appendChild(img);
+
+      (function (el) {
+        setTimeout(function () {
+          el.remove();
+        }, 4500);
+      })(img);
+    }
+  }
+
+  function formatTimeParts(distance) {
+    var d = Math.floor(distance / (1000*60*60*24));
+    var h = Math.floor((distance % (1000*60*60*24)) / (1000*60*60));
+    var m = Math.floor((distance % (1000*60*60)) / (1000*60));
+    var s = Math.floor((distance % (1000*60)) / 1000);
+    return { d: d, h: h, m: m, s: s };
+  }
+
+  function renderTimer(elementId, parts) {
+    var el = document.getElementById(elementId);
+    if (!el) return;
+    el.innerHTML =
+      '<div class="timer-box">' +
+        '<div class="timer-number">' + parts.d + '</div>' +
+        '<div class="timer-label-small">Days</div>' +
+      '</div>' +
+      '<div class="timer-box">' +
+        '<div class="timer-number">' + parts.h + '</div>' +
+        '<div class="timer-label-small">Hours</div>' +
+      '</div>' +
+      '<div class="timer-box">' +
+        '<div class="timer-number">' + parts.m + '</div>' +
+        '<div class="timer-label-small">Mins</div>' +
+      '</div>' +
+      '<div class="timer-box">' +
+        '<div class="timer-number">' + parts.s + '</div>' +
+        '<div class="timer-label-small">Secs</div>' +
+      '</div>';
+  }
+
+  function showOnlyTimerSection(sectionId) {
+    var ids = ['timer1-section', 'timer2-section', 'timer3-section'];
+    for (var i = 0; i < ids.length; i++) {
+      var sec = document.getElementById(ids[i]);
+      if (sec) sec.style.display = (ids[i] === sectionId ? 'block' : 'none');
+    }
+  }
+
+  function hideAllTimers() {
+    showOnlyTimerSection(null);
+  }
+
+  function hideElement(id) {
+    var el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  }
+
+  function showElement(id) {
+    var el = document.getElementById(id);
+    if (el) el.style.display = 'block';
+  }
+
+  // PRE-SHOW: "Happy Birthday Dawnel!!" countdown
+  
+function updatePreShow() {
+  var now = Date.now();
+  var distance = preShowEvent - now;
+  var parts = formatTimeParts(distance < 0 ? 0 : distance);
+  renderTimer('preCountdown', parts);
+
+  // Fade out pre-show music in the last 5 seconds
+  if (!preFadeStarted && distance > 0 && distance <= 5000) {
+    preFadeStarted = true;
+    if (preMusic && !preMusic.paused) {
+      var fadeSteps = 10;
+      var stepDuration = 500; // 10 steps * 0.5s = 5 seconds
+      var stepSize = preMusic.volume / fadeSteps;
+      var currentStep = 0;
+
+      var fadeInterval = setInterval(function () {
+        currentStep++;
+        var newVol = preMusic.volume - stepSize;
+        if (newVol <= 0 || currentStep >= fadeSteps) {
+          preMusic.volume = 0;
+          preMusic.pause();
+          preMusic.currentTime = 0;
+          clearInterval(fadeInterval);
+        } else {
+          preMusic.volume = newVol;
+        }
+      }, stepDuration);
+    }
+  }
+
+  if (distance <= 0) {
+    if (preShowInterval) {
+      clearInterval(preShowInterval);
+      preShowInterval = null;
+    }
+    startMainShow();
+  }
+}
+
+  function createConfetti() {
+    var container = document.getElementById('confetti-container');
+    if (!container) return;
+    container.innerHTML = '';
+    for (var i = 0; i < 80; i++) {
+      var c = document.createElement('div');
+      c.className = 'confetti';
+      c.style.left = Math.random() * 100 + '%';
+      c.style.animationDelay = (Math.random() * 2) + 's';
+      container.appendChild(c);
+    }
+  }
+
+function startPreShow() {
+  if (preShowStarted) return;
+  preShowStarted = true;
+  preFadeStarted = false;  // reset fade flag each time pre-show starts
+  
+    var auth = document.getElementById('auth-screen');
+    if (auth) auth.style.display = 'none';
+
+    var pre = document.getElementById('pre-show');
+    if (pre) pre.style.display = 'flex';
+
+    // Hide main card + petals during pre-show
+    var app = document.querySelector('.app-shell');
+    var petals = document.querySelector('.petals');
+    if (app) app.style.display = 'none';
+    if (petals) petals.style.display = 'none';
+
+    createConfetti();
+    updatePreShow();
+    preShowInterval = setInterval(updatePreShow, 1000);
+  }
+
+  function attachMainTapHandler() {
+    if (mainTapHandlerAttached) return;
+    mainTapHandlerAttached = true;
+
+    // First tap in the main show: start main music and show video 5s later
+    function onFirstTap() {
+      if (music && music.paused) {
+        music.volume = 0.4;
+        music.play().catch(function () {});
+      }
+
+      setTimeout(function () {
+        var wrapper = document.querySelector('.video-wrapper');
+        if (wrapper) {
+          wrapper.classList.add('video-visible');
+        }
+      }, 5000);
+
+      document.removeEventListener('click', onFirstTap);
+    }
+
+    document.addEventListener('click', onFirstTap);
+  }
+
+  function startMainShow() {
+    if (mainShowStarted) return;
+    mainShowStarted = true;
+
+    var pre = document.getElementById('pre-show');
+    if (pre) pre.style.display = 'none';
+
+    // Stop preshow music if it's playing
+    if (preMusic && !preMusic.paused) {
+      preMusic.pause();
+      preMusic.currentTime = 0;
+    }
+
+    var app = document.querySelector('.app-shell');
+    var petals = document.querySelector('.petals');
+    if (app) app.style.display = 'block';
+    if (petals) petals.style.display = 'block';
+
+    // Wait for Dawnel to tap: then start main music and show video 5s later
+    attachMainTapHandler();
+  }
+
+  // PASSWORD CHECK
+  function handlePasswordSubmit() {
+    var input = document.getElementById('passwordInput');
+    var error = document.getElementById('passwordError');
+    if (!input || !error) return;
+
+    var raw = input.value || '';
+    if (!raw) {
+      error.textContent = 'Please enter the password.';
+      return;
+    }
+
+    var requiredLower = 'andrea1969sanfranciscoblack';
+    var normalized = raw.toLowerCase();
+
+    if (raw.charAt(0) !== 'A' || normalized !== requiredLower) {
+      error.textContent = 'That doesn\'t seem quite right. Try again. ❤️';
+      return;
+    }
+
+    // Correct password
+    error.textContent = '';
+
+    if (unlockSound) {
+      unlockSound.currentTime = 0;
+      unlockSound.play().catch(function () {});
+    }
+
+  // Correct password
+  error.textContent = '';
+
+  if (unlockSound) {
+    unlockSound.currentTime = 0;
+    unlockSound.play().catch(function () {});
+  }
+
+  if (TEST_MODE) {
+    // In TEST MODE, always start a fresh 15s pre-show from NOW
+    var base = Date.now();
+    preShowEvent = base + 30000;
+    event1      = preShowEvent + 30000;
+    event1Done  = event1 + 30000;
+    event2      = event1Done + 30000;
+    event2Done  = event2 + 30000;
+    event3      = event2Done + 30000;
+
+    if (preMusic && preMusic.paused) {
+      preMusic.volume = 0.4;
+      preMusic.play().catch(function () {});
+    }
+    startPreShow();
+  } else {
+    // REAL MODE: if it's already past pre-show time, skip straight to main show
+    if (Date.now() >= preShowEvent) {
+      var auth = document.getElementById('auth-screen');
+      if (auth) auth.style.display = 'none';
+      startMainShow();
+    } else {
+      if (preMusic && preMusic.paused) {
+        preMusic.volume = 0.4;
+        preMusic.play().catch(function () {});
+      }
+      startPreShow();
+    }
+  }
+}
+
+  // Attach password form handler
+  var passwordForm = document.getElementById('passwordForm');
+  if (passwordForm) {
+    passwordForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      handlePasswordSubmit();
+    });
+  }
+
+  // MAIN DECEMBER TIMERS + LOADING + THE END
+  function updateSequence() {
+    var now = Date.now();
+    var activeTimerId = null;
+    var activeTarget = null;
+
+    if (now < event1) {
+      hideElement('loading-banner');
+      hideElement('the-end');
+      showOnlyTimerSection('timer1-section');
+      activeTimerId = 'timer1';
+      activeTarget = event1;
+    } else if (now >= event1 && now < event1Done) {
+      hideAllTimers();
+      hideElement('the-end');
+      showElement('loading-banner');
+    } else if (now >= event1Done && now < event2) {
+      hideElement('loading-banner');
+      hideElement('the-end');
+      showOnlyTimerSection('timer2-section');
+      activeTimerId = 'timer2';
+      activeTarget = event2;
+    } else if (now >= event2 && now < event2Done) {
+      hideAllTimers();
+      hideElement('the-end');
+      showElement('loading-banner');
+    } else if (now >= event2Done && now < event3) {
+      hideElement('loading-banner');
+      hideElement('the-end');
+      showOnlyTimerSection('timer3-section');
+      activeTimerId = 'timer3';
+      activeTarget = event3;
+    } else {
+      hideAllTimers();
+      hideElement('loading-banner');
+      showElement('the-end');
+
+      if (!endMusicStarted) {
+        endMusicStarted = true;
+        if (music && !music.paused) {
+          fadeMusic(0.0, 0.05, 200, 'bg');
+        }
+        if (endMusic) {
+          endMusic.volume = 0.0;
+          endMusic.play().catch(function () {});
+          var crescendo = setInterval(function () {
+            if (!endMusic) { clearInterval(crescendo); return; }
+            var v = endMusic.volume + 0.05;
+            if (v >= 0.8) {
+              endMusic.volume = 0.8;
+              clearInterval(crescendo);
+            } else {
+              endMusic.volume = v;
+            }
+          }, 300);
+        }
+      }
+    }
+
+    if (activeTimerId && activeTarget) {
+      var distance = activeTarget - now;
+      if (distance < 0) distance = 0;
+      var parts = formatTimeParts(distance);
+      renderTimer(activeTimerId, parts);
+    }
+  }
+
+  updateSequence();
+  setInterval(updateSequence, 1000);
+
+  // VIDEO EVENT HANDLERS – use main show music only
+  if (video) {
+    video.addEventListener('play', function () {
+      if (music && !music.paused) {
+        fadeMusic(0.06, 0.02, 180, 'bg');
+      }
+    });
+
+    video.addEventListener('ended', function () {
+      // 1) Petal burst
+      triggerPetalBurst();
+
+      // 2) Hide intro texts
+      var tapHint = document.querySelector('.tap-hint');
+      var subtitle = document.querySelector('.subtitle');
+      [tapHint, subtitle].forEach(function (el) {
+        if (el) el.style.display = 'none';
+      });
+
+      // 3) Music fade back up
+      if (music) {
+        fadeMusic(0.4, 0.02, 180, 'bg');
+      }
+
+      // 4) Fade out video wrapper
+      var wrapper = document.querySelector('.video-wrapper');
+      if (wrapper) {
+        wrapper.classList.add('fade-out');
+        setTimeout(function () {
+          wrapper.style.display = 'none';
+        }, 4200);
+      }
+
+      // 5) Slow scroll to timers, then animate production tag
+      var timers = document.querySelector('.timers');
+      if (timers) {
+        var startY = window.scrollY;
+        var rect = timers.getBoundingClientRect();
+        var endY = rect.top + window.scrollY - 20;
+        var duration = 5000;
+        var startTime = null;
+
+        function smoothScrollStep(ts) {
+          if (!startTime) startTime = ts;
+          var progress = ts - startTime;
+          var percent = Math.min(progress / duration, 1);
+          var ease = percent < 0.5
+            ? 2 * percent * percent
+            : 1 - Math.pow(-2 * percent + 2, 2) / 2;
+
+          window.scrollTo(0, startY + (endY - startY) * ease);
+
+          if (percent < 1) {
+            requestAnimationFrame(smoothScrollStep);
+          } else {
+            startProductionTagAnimation();
+          }
+        }
+        requestAnimationFrame(smoothScrollStep);
+      }
+    });
+  }
+
+  // ================================
+  // 🎛 SHOW TEST MODE BADGE
+  // ================================
+  if (TEST_MODE) {
+    var badge = document.getElementById('test-badge');
+    if (badge) badge.style.display = 'block';
+  }
+</script>
+
+</body>
+</html>
+
