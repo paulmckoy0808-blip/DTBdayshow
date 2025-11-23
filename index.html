@@ -74,7 +74,61 @@
     color: #ff9da0;
   }
 
-  /* PRE-SHOW (Happy Birthday + confetti + countdown) */
+  /* FIREWORKS LAYER (behind text but above background) */
+  #fireworks-layer {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: -1;      /* behind pre-content, above background */
+    overflow: hidden;
+  }
+
+  .firework {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
+.firework-spark {
+  position: absolute;
+  width: 8px;                 /* bigger sparks */
+  height: 8px;
+  border-radius: 50%;
+  background: #ffe9a3;        /* brighter gold */
+  opacity: 1;
+  box-shadow: 0 0 12px #ffefb0, 0 0 18px #ffd86b;  /* glowy effect */
+  animation: fireworkSpark 1.4s ease-out forwards; /* slightly slower */
+}
+
+.firework-spark:nth-child(3n) {
+  background: #ff7fa2;
+  box-shadow: 0 0 12px #ff99b7, 0 0 18px #ff5c8d;
+}
+
+.firework-spark:nth-child(4n) {
+  background: #9ddaff;
+  box-shadow: 0 0 12px #b5e5ff, 0 0 18px #71c5ff;
+}
+
+.firework-spark:nth-child(5n) {
+  background: #ffffff;
+  box-shadow: 0 0 14px #ffffff, 0 0 24px #d2f2ff;
+}
+
+  @keyframes fireworkSpark {
+    0% {
+      transform: translate(0, 0) scale(1);
+      opacity: 1;
+    }
+    100% {
+      transform: translate(var(--dx), var(--dy)) scale(0.9);
+      opacity: 0;
+    }
+  }
+  
+/* PRE-SHOW (Happy Birthday + confetti + countdown) */
   #pre-show {
     position: fixed;
     inset: 0;
@@ -118,7 +172,7 @@
     background: #ffd777;
     opacity: 0.9;
     border-radius: 2px;
-    animation: confettiFall 3.5s linear infinite;
+    animation: confettiFall 6.5s linear infinite;
   }
   .confetti:nth-child(3n) {
     background: #ff5f7a;
@@ -129,17 +183,23 @@
   .confetti:nth-child(5n) {
     background: #ffffff;
   }
-  @keyframes confettiFall {
-    0% {
-      transform: translate3d(0, -20vh, 0) rotateZ(0deg);
-    }
-    50% {
-      transform: translate3d(15px, 40vh, 0) rotateZ(120deg);
-    }
-    100% {
-      transform: translate3d(-10px, 110vh, 0) rotateZ(240deg);
-    }
+@keyframes confettiFall {
+  0% {
+    transform: translateY(-20vh) translateX(0) rotate(0deg);
   }
+  25% {
+    transform: translateY(25vh) translateX(12px) rotate(90deg);
+  }
+  50% {
+    transform: translateY(55vh) translateX(-10px) rotate(190deg);
+  }
+  75% {
+    transform: translateY(85vh) translateX(16px) rotate(290deg);
+  }
+  100% {
+    transform: translateY(115vh) translateX(-8px) rotate(360deg);
+  }
+}
 
   * { box-sizing: border-box; }
   body {
@@ -527,7 +587,7 @@
     <div class="auth-card">
       <div class="auth-title">Enter the secret phrase</div>
       <div class="auth-hint">
-        Password hint: This message will activate when you open the Gate just say your Middle name birth year one of your favourite places and the journey will begin oh you'll need to say something about your car as well....good luck!
+        Password hint: Within this passage is your code for passing through the Gates to mysteries yet untold!<br>The Name between the first and last<br>The year in which you first saw dawn<br>A place to which you wish to visit and<br>The hue of Jehu's chariot
       </div>
       <form id="passwordForm">
         <input id="passwordInput" type="password" placeholder="Enter password" autocomplete="off" />
@@ -558,6 +618,7 @@
 
 <!-- PRE-SHOW SCREEN -->
 <div id="pre-show">
+  <div id="fireworks-layer"></div>
   <div id="confetti-container"></div>
   <div id="pre-content">
     <div id="pre-title">Happy Birthday Dawnel!!</div>
@@ -593,10 +654,8 @@
       <span>For Dawnel • 2025</span>
     </div>
 
-    <div class="tap-hint">Tap anywhere once to start the music…</div>
-
 <div class="subtitle">
-  I have a special treat for you today<br>press here to play!
+  Here's a special treat for you today<br>tap here to play!
 </div>
 
     <div class="video-wrapper">
@@ -607,7 +666,7 @@
     </div>
 
     <div class="hint">
-      When this video finishes, watch what happens next. Our moments are waiting in the countdowns below. 💛
+    When this video finishes, watch what happens next. Other special moments are waiting in the countdown. 💛
     </div>
 
     <div id="loading-banner">
@@ -617,7 +676,7 @@
     <div class="timers">
       <div id="timer1-section" class="timer-section">
         <div class="timer-title">
-          <span>Next surprise</span>
+          <span>Next Event</span>
           <span class="pill-label">6 December • 6:00 PM</span>
         </div>
         <div id="timer1" class="timer-value"></div>
@@ -626,7 +685,7 @@
 
       <div id="timer2-section" class="timer-section">
         <div class="timer-title">
-          <span>Another moment</span>
+          <span>Another Special Moment</span>
           <span class="pill-label">20 December • 6:00 PM</span>
         </div>
         <div id="timer2" class="timer-value"></div>
@@ -635,7 +694,7 @@
 
       <div id="timer3-section" class="timer-section">
         <div class="timer-title">
-          <span>The final surprise</span>
+          <span>Finale</span>
           <span class="pill-label">26 December • 6:00 PM</span>
         </div>
         <div id="timer3" class="timer-value"></div>
@@ -693,6 +752,7 @@
   var mainShowStarted = false;
   var mainTapHandlerAttached = false;
   var preFadeStarted = false;   // to avoid starting multiple fades
+  var fireworksInterval = null;
 
   // ================================
   // 🔧 TEST MODE TOGGLE
@@ -880,6 +940,7 @@ function updatePreShow() {
       clearInterval(preShowInterval);
       preShowInterval = null;
     }
+    stopFireworks();
     startMainShow();
   }
 }
@@ -896,6 +957,64 @@ function updatePreShow() {
       container.appendChild(c);
     }
   }
+
+  function launchFirework() {
+    var area = document.getElementById('fireworks-layer');
+    if (!area) return;
+
+    var fw = document.createElement('div');
+    fw.className = 'firework';
+
+    // Random position in upper/middle area of screen
+    var x = Math.random() * 100;
+    var y = 15 + Math.random() * 45; // between 15% and 60% vertically
+    fw.style.left = x + '%';
+    fw.style.top = y + '%';
+
+    // Create sparks in a circle
+    var sparkCount = 18;
+    for (var i = 0; i < sparkCount; i++) {
+      var spark = document.createElement('span');
+      spark.className = 'firework-spark';
+
+      var angle = (Math.PI * 2 * i) / sparkCount;
+      var radius = 110 + Math.random() * 70; // how far sparks travel
+
+      var dx = Math.cos(angle) * radius;
+      var dy = Math.sin(angle) * radius;
+
+      spark.style.setProperty('--dx', dx + 'px');
+      spark.style.setProperty('--dy', dy + 'px');
+
+      fw.appendChild(spark);
+    }
+
+    area.appendChild(fw);
+
+    // Clean up after animation finishes
+    setTimeout(function () {
+      fw.remove();
+    }, 1300);
+  }
+
+  function startFireworks() {
+    if (fireworksInterval) return;
+    // Launch one immediately, then every 1.2s
+    launchFirework();
+    fireworksInterval = setInterval(launchFirework, 1200);
+  }
+
+  function stopFireworks() {
+    if (fireworksInterval) {
+      clearInterval(fireworksInterval);
+      fireworksInterval = null;
+    }
+    var area = document.getElementById('fireworks-layer');
+    if (area) {
+      area.innerHTML = '';
+    }
+  }
+
 
 function startPreShow() {
   if (preShowStarted) return;
@@ -914,10 +1033,11 @@ function startPreShow() {
     if (app) app.style.display = 'none';
     if (petals) petals.style.display = 'none';
 
-    createConfetti();
-    updatePreShow();
-    preShowInterval = setInterval(updatePreShow, 1000);
-  }
+  createConfetti();
+  startFireworks();
+  updatePreShow();
+  preShowInterval = setInterval(updatePreShow, 1000);
+}
 
   function attachMainTapHandler() {
     if (mainTapHandlerAttached) return;
