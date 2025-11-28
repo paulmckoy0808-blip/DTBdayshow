@@ -511,7 +511,47 @@
     overflow: hidden;
     height: 1.4em;
   }
-  #loading-text {
+
+  #zoom-banner {
+    display: none;
+    margin-top: 18px;
+    padding: 14px 14px 12px;
+    border-radius: 18px;
+    background: radial-gradient(circle at top left, rgba(139, 195, 255, 0.3), rgba(10, 20, 40, 0.95));
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    text-align: center;
+  }
+
+  .zoom-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  .zoom-link {
+    display: inline-block;
+    margin: 6px 0;
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #ffd777, #ffb347);
+    color: #000;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+  }
+
+  .zoom-link:hover {
+    filter: brightness(1.05);
+  }
+
+  .zoom-note {
+    margin-top: 8px;
+    font-size: 0.78rem;
+    opacity: 0.85;
+  }
+  
+#loading-text {
     display: inline-block;
     white-space: nowrap;
     animation: loadingSlide 3s linear infinite;
@@ -702,13 +742,28 @@
       </div>
     </div>
 
+    <div id="zoom-banner">
+      <div class="zoom-title">Our call is live now</div>
+      <a
+        class="zoom-link"
+        href="https://us06web.zoom.us/j/84187023935?pwd=z5YbdIg2wAly85bYQdw51MVK0YCDn7.1"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Tap here to join the Zoom room 💛
+      </a>
+      <div class="zoom-note">
+        This link will be here for a little while.......
+      </div>
+    </div>
+
     <div id="the-end">
       <div id="the-end-text">The End</div>
       <div id="the-end-sub">…well the end of penpals hopefully and the beginning of something more!! 🤍</div>
     </div>
 
     <div class="footer-note">
-      Live every moment - cherish all of them!! Counting down with you! 💛
+      Live every moment - Cherish all of them!! Counting down with you! 💛
     </div>
 
     <div class="production-tag">A Penpal Production</div>
@@ -764,31 +819,38 @@
   // ================================
   // 📅 DATE CONTROL (TEST MODE / LIVE MODE)
   // ================================
-  var preShowEvent, event1, event1Done, event2, event2Done, event3;
+
+  var preShowEvent,
+      event1,
+      event1ZoomEnd,
+      event2,
+      event2ZoomEnd,
+      event3;
 
   if (TEST_MODE) {
-    // --- FAST TEST MODE (Everything = 15 seconds) ---
+    // --- FAST TEST MODE (15-second slices) ---
     let now = Date.now();
 
-    preShowEvent = now + 30000;          // Pre-show ends in 15 seconds
-    event1      = preShowEvent + 30000;  // Timer 1 ends 15s later
-    event1Done  = event1 + 30000;        // Loading 1 = 15s
-    event2      = event1Done + 30000;    // Timer 2 = 15s
-    event2Done  = event2 + 30000;        // Loading 2 = 15s
-    event3      = event2Done + 30000;    // Timer 3 = 15s until "The End"
+    preShowEvent   = now + 15000;           // pre-show ends in 15s
+    event1         = preShowEvent + 15000;  // timer 1 -> 15s
+    event1ZoomEnd  = event1 + 15000;        // Zoom window 1 -> 15s
+    event2         = event1ZoomEnd + 15000; // timer 2 -> 15s
+    event2ZoomEnd  = event2 + 15000;        // Zoom window 2 -> 15s
+    event3         = event2ZoomEnd + 15000; // timer 3 -> 15s then The End
 
   } else {
-    // --- REAL WORLD MODE (Jamaica Time via device clock) ---
-    preShowEvent = new Date('November 24, 2025 23:00:00').getTime();
+    // --- REAL WORLD DATES ---
+    preShowEvent = new Date('November 24, 2025 07:00:00').getTime();
 
-    event1     = new Date('November 28, 2025 18:00:00').getTime();
-    event1Done = event1 + 6 * 60 * 60 * 1000;
+    event1        = new Date('November 28, 2025 19:30:00').getTime();
+    event1ZoomEnd = event1 + 2 * 60 * 60 * 1000;  // 2 hours after event 1
 
-    event2     = new Date('December 13, 2025 03:30:00').getTime();
-    event2Done = event2 + 6 * 60 * 60 * 1000;
+    event2        = new Date('December 13, 2025 03:30:00').getTime();
+    event2ZoomEnd = event2 + 2 * 60 * 60 * 1000;  // 2 hours after event 2
 
-    event3     = new Date('December 27, 2025 17:00:00').getTime();
+    event3        = new Date('December 27, 2025 17:00:00').getTime();
   }
+
 
   function fadeMusic(targetVolume, step, intervalMs, which) {
     var audio = (which === 'end') ? endMusic : music;
@@ -1124,12 +1186,12 @@ function startPreShow() {
   if (TEST_MODE) {
     // In TEST MODE, always start a fresh 15s pre-show from NOW
     var base = Date.now();
-    preShowEvent = base + 30000;
-    event1      = preShowEvent + 30000;
-    event1Done  = event1 + 30000;
-    event2      = event1Done + 30000;
-    event2Done  = event2 + 30000;
-    event3      = event2Done + 30000;
+    preShowEvent   = base + 15000;
+    event1         = preShowEvent + 15000;
+    event1ZoomEnd  = event1 + 15000;
+    event2         = event1ZoomEnd + 15000;
+    event2ZoomEnd  = event2 + 15000;
+    event3         = event2ZoomEnd + 15000;
 
     if (preMusic && preMusic.paused) {
       preMusic.volume = 0.4;
@@ -1220,6 +1282,280 @@ function startPreShow() {
       }
     }
 
+    if (activeTimerId && activeTarget) {
+      var distance = activeTarget - now;
+      if (distance < 0) distance = 0;
+      var parts = formatTimeParts(distance);
+      renderTimer(activeTimerId, parts);
+    }
+  }
+  function updateSequence() {
+    var now = Date.now();
+    var activeTimerId = null;
+    var activeTarget = null;
+
+    if (now < event1) {
+      hideElement('loading-banner');
+      hideElement('the-end');
+      showOnlyTimerSection('timer1-section');
+      activeTimerId = 'timer1';
+      activeTarget = event1;
+    } else if (now >= event1 && now < event1Done) {
+      hideAllTimers();
+      hideElement('the-end');
+      showElement('loading-banner');
+    } else if (now >= event1Done && now < event2) {
+      hideElement('loading-banner');
+      hideElement('the-end');
+      showOnlyTimerSection('timer2-section');
+      activeTimerId = 'timer2';
+      activeTarget = event2;
+    } else if (now >= event2 && now < event2Done) {
+      hideAllTimers();
+      hideElement('the-end');
+      showElement('loading-banner');
+    } else if (now >= event2Done && now < event3) {
+      hideElement('loading-banner');
+      hideElement('the-end');
+      showOnlyTimerSection('timer3-section');
+      activeTimerId = 'timer3';
+      activeTarget = event3;
+    } else {
+      hideAllTimers();
+      hideElement('loading-banner');
+      showElement('the-end');
+
+      if (!endMusicStarted) {
+        endMusicStarted = true;
+        if (music && !music.paused) {
+          fadeMusic(0.0, 0.05, 200, 'bg');
+        }
+        if (endMusic) {
+          endMusic.volume = 0.0;
+          endMusic.play().catch(function () {});
+          var crescendo = setInterval(function () {
+            if (!endMusic) { clearInterval(crescendo); return; }
+            var v = endMusic.volume + 0.05;
+            if (v >= 0.8) {
+              endMusic.volume = 0.8;
+              clearInterval(crescendo);
+            } else {
+              endMusic.volume = v;
+            }
+          }, 300);
+        }
+      }
+    }
+
+    if (activeTimerId && activeTarget) {
+      var distance = activeTarget - now;
+      if (distance < 0) distance = 0;
+      var parts = formatTimeParts(distance);
+      renderTimer(activeTimerId, parts);
+    }
+  }
+  function updateSequence() {
+    var now = Date.now();
+    var activeTimerId = null;
+    var activeTarget = null;
+
+    if (now < event1) {
+      hideElement('loading-banner');
+      hideElement('the-end');
+      showOnlyTimerSection('timer1-section');
+      activeTimerId = 'timer1';
+      activeTarget = event1;
+    } else if (now >= event1 && now < event1Done) {
+      hideAllTimers();
+      hideElement('the-end');
+      showElement('loading-banner');
+    } else if (now >= event1Done && now < event2) {
+      hideElement('loading-banner');
+      hideElement('the-end');
+      showOnlyTimerSection('timer2-section');
+      activeTimerId = 'timer2';
+      activeTarget = event2;
+    } else if (now >= event2 && now < event2Done) {
+      hideAllTimers();
+      hideElement('the-end');
+      showElement('loading-banner');
+    } else if (now >= event2Done && now < event3) {
+      hideElement('loading-banner');
+      hideElement('the-end');
+      showOnlyTimerSection('timer3-section');
+      activeTimerId = 'timer3';
+      activeTarget = event3;
+    } else {
+      hideAllTimers();
+      hideElement('loading-banner');
+      showElement('the-end');
+
+      if (!endMusicStarted) {
+        endMusicStarted = true;
+        if (music && !music.paused) {
+          fadeMusic(0.0, 0.05, 200, 'bg');
+        }
+        if (endMusic) {
+          endMusic.volume = 0.0;
+          endMusic.play().catch(function () {});
+          var crescendo = setInterval(function () {
+            if (!endMusic) { clearInterval(crescendo); return; }
+            var v = endMusic.volume + 0.05;
+            if (v >= 0.8) {
+              endMusic.volume = 0.8;
+              clearInterval(crescendo);
+            } else {
+              endMusic.volume = v;
+            }
+          }, 300);
+        }
+      }
+    }
+
+    if (activeTimerId && activeTarget) {
+      var distance = activeTarget - now;
+      if (distance < 0) distance = 0;
+      var parts = formatTimeParts(distance);
+      renderTimer(activeTimerId, parts);
+    }
+  }
+  function updateSequence() {
+    var now = Date.now();
+    var activeTimerId = null;
+    var activeTarget = null;
+
+    if (now < event1) {
+      hideElement('loading-banner');
+      hideElement('the-end');
+      showOnlyTimerSection('timer1-section');
+      activeTimerId = 'timer1';
+      activeTarget = event1;
+    } else if (now >= event1 && now < event1Done) {
+      hideAllTimers();
+      hideElement('the-end');
+      showElement('loading-banner');
+    } else if (now >= event1Done && now < event2) {
+      hideElement('loading-banner');
+      hideElement('the-end');
+      showOnlyTimerSection('timer2-section');
+      activeTimerId = 'timer2';
+      activeTarget = event2;
+    } else if (now >= event2 && now < event2Done) {
+      hideAllTimers();
+      hideElement('the-end');
+      showElement('loading-banner');
+    } else if (now >= event2Done && now < event3) {
+      hideElement('loading-banner');
+      hideElement('the-end');
+      showOnlyTimerSection('timer3-section');
+      activeTimerId = 'timer3';
+      activeTarget = event3;
+    } else {
+      hideAllTimers();
+      hideElement('loading-banner');
+      showElement('the-end');
+
+      if (!endMusicStarted) {
+        endMusicStarted = true;
+        if (music && !music.paused) {
+          fadeMusic(0.0, 0.05, 200, 'bg');
+        }
+        if (endMusic) {
+          endMusic.volume = 0.0;
+          endMusic.play().catch(function () {});
+          var crescendo = setInterval(function () {
+            if (!endMusic) { clearInterval(crescendo); return; }
+            var v = endMusic.volume + 0.05;
+            if (v >= 0.8) {
+              endMusic.volume = 0.8;
+              clearInterval(crescendo);
+            } else {
+              endMusic.volume = v;
+            }
+          }, 300);
+        }
+      }
+    }
+
+    if (activeTimerId && activeTarget) {
+      var distance = activeTarget - now;
+      if (distance < 0) distance = 0;
+      var parts = formatTimeParts(distance);
+      renderTimer(activeTimerId, parts);
+    }
+  }
+  function updateSequence() {
+    var now = Date.now();
+    var activeTimerId = null;
+    var activeTarget = null;
+
+    if (now < event1) {
+      // Before Event 1: show Timer 1
+      hideElement('loading-banner');
+      hideElement('the-end');
+      hideElement('zoom-banner');
+      showOnlyTimerSection('timer1-section');
+      activeTimerId = 'timer1';
+      activeTarget = event1;
+
+    } else if (now >= event1 && now < event1ZoomEnd) {
+      // Event 1 live window: show Zoom link
+      hideAllTimers();
+      hideElement('loading-banner');
+      hideElement('the-end');
+      showElement('zoom-banner');
+
+    } else if (now >= event1ZoomEnd && now < event2) {
+      // After Event 1 window, before Event 2: show Loading...
+      hideAllTimers();
+      hideElement('the-end');
+      hideElement('zoom-banner');
+      showElement('loading-banner');
+
+    } else if (now >= event2 && now < event2ZoomEnd) {
+      // Event 2 live window: show Zoom link again
+      hideAllTimers();
+      hideElement('loading-banner');
+      hideElement('the-end');
+      showElement('zoom-banner');
+
+    } else if (now >= event2ZoomEnd && now < event3) {
+      // After Event 2 window, before Event 3: show Loading...
+      hideAllTimers();
+      hideElement('the-end');
+      hideElement('zoom-banner');
+      showElement('loading-banner');
+
+    } else {
+      // After Event 3: show The End
+      hideAllTimers();
+      hideElement('loading-banner');
+      hideElement('zoom-banner');
+      showElement('the-end');
+
+      if (!endMusicStarted) {
+        endMusicStarted = true;
+        if (music && !music.paused) {
+          fadeMusic(0.0, 0.05, 200, 'bg');
+        }
+        if (endMusic) {
+          endMusic.volume = 0.0;
+          endMusic.play().catch(function () {});
+          var crescendo = setInterval(function () {
+            if (!endMusic) { clearInterval(crescendo); return; }
+            var v = endMusic.volume + 0.05;
+            if (v >= 0.8) {
+              endMusic.volume = 0.8;
+              clearInterval(crescendo);
+            } else {
+              endMusic.volume = v;
+            }
+          }, 300);
+        }
+      }
+    }
+
+    // Keep countdown values updating for whichever timer is active
     if (activeTimerId && activeTarget) {
       var distance = activeTarget - now;
       if (distance < 0) distance = 0;
